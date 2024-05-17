@@ -6,9 +6,12 @@ using System.Threading.Tasks;
 
 namespace Dtwo.API.Inputs
 {
-    public static class InputKeyWindow
+    /// <summary>
+    /// Methods to listen to key inputs in a specific window
+    /// </summary>
+    public class InputKeyWindow : ThreadSafeSingleton<InputKeyWindow>
     {
-        public class Listener
+        private class Listener
         {
             public DofusWindow DofusWindow;
             private Dictionary<int, Action> m_actions = new Dictionary<int, Action>();
@@ -47,34 +50,52 @@ namespace Dtwo.API.Inputs
             }
         }
 
-        private static event Action<DofusWindow, int> m_onKeyDownInWindow;
-        public static event Action<DofusWindow, int> OnKeyDownInWindow
+
+		/// <summary>
+		/// Register a callback when a subscribed key is pressed in a window
+		/// </summary>
+		public event Action<DofusWindow, int> WindowKeyDown
+		{
+			add => m_windowKeyDown += value;
+			remove => m_windowKeyDown -= value;
+		}
+		private event Action<DofusWindow, int>? m_windowKeyDown;
+
+        /// <summary>
+        /// Register a callback when a subscribed key is released in a window
+        /// </summary>
+        public event Action<DofusWindow, int> WindowKeyUp
         {
-            add => m_onKeyDownInWindow += value;
-            remove => m_onKeyDownInWindow -= value;
+            add => m_windowKeyUp += value;
+            remove => m_windowKeyUp -= value;
         }
+		private event Action<DofusWindow, int>? m_windowKeyUp;
 
-        private static event Action<DofusWindow, int> m_onKeyUpInWindow;
-        public static event Action<DofusWindow, int> OnKeyUpInWindow
+        private readonly Dictionary<IntPtr, Listener> m_registeredKeyUpCallbacks = new();
+        private readonly Dictionary<IntPtr, Listener> m_registeredKeyDownCallbacks = new();
+
+        private bool m_isInitialized = false;
+
+        /// <summary>
+        /// Initialize the InputKeyWindow
+        /// </summary>
+        public void Init()
         {
-            add => m_onKeyUpInWindow += value;
-            remove => m_onKeyUpInWindow -= value;
-        }
+            if (m_isInitialized)
+            {
+                LogManager.LogWarning("InputKeyWindow.Init", "InputKeyWindow is already initialized");
+                return;
+            }
 
-        private static Dictionary<IntPtr, Listener> m_registeredKeyUpCallbacks = new Dictionary<IntPtr, Listener>();
-        private static Dictionary<IntPtr, Listener> m_registeredKeyDownCallbacks = new Dictionary<IntPtr, Listener>();
-
-
-
-        public static void Init()
-        {
             InputKeyListener.Instance.KeyDown += OnKeyDown;
             InputKeyListener.Instance.KeyUp += OnKeyUp;
+
+            m_isInitialized = true;
         }
 
-        private static void OnKeyDown(int key)
+        private void OnKeyDown(int key)
         {
-            Listener listener;
+            Listener? listener = null;
             var focused = SystemWindowInfos.FocusedDofusWindow;
 
             if (focused == null)
@@ -86,10 +107,10 @@ namespace Dtwo.API.Inputs
             }
 
             listener.CallAction(key);
-            m_onKeyDownInWindow?.Invoke(focused, key);
+            m_windowKeyDown?.Invoke(focused, key);
         }
 
-        private static void OnKeyUp(int key)
+        private void OnKeyUp(int key)
         {
             Listener listener;
             var focused = SystemWindowInfos.FocusedDofusWindow;
@@ -103,12 +124,17 @@ namespace Dtwo.API.Inputs
             }
 
             listener.CallAction(key);
-            m_onKeyUpInWindow?.Invoke(focused, key);
+            m_windowKeyUp?.Invoke(focused, key);
         }
 
 
-
-        public static void SubscribeKeyUp(DofusWindow window, int key, Action callback)
+        /// <summary>
+        /// Subscribe to a key up event
+        /// </summary>
+        /// <param name="window"></param>
+        /// <param name="key"></param>
+        /// <param name="callback"></param>
+        public void SubscribeKeyUp(DofusWindow window, int key, Action callback)
         {
             var whnd = window.WindowProcess.MainWindowHandle;
 
@@ -128,7 +154,12 @@ namespace Dtwo.API.Inputs
             InputKeyListener.Instance.AddKey(key);
         }
 
-        public static void UnsubscribeKeyUp(DofusWindow window, int key)
+        /// <summary>
+        /// Unsubscribe to a key up event
+        /// </summary>
+        /// <param name="window"></param>
+        /// <param name="key"></param>
+        public void UnsubscribeKeyUp(DofusWindow window, int key)
         {
             var whnd = window.WindowProcess.MainWindowHandle;
 
@@ -144,7 +175,13 @@ namespace Dtwo.API.Inputs
             m_registeredKeyDownCallbacks.Remove(whnd);
         }
 
-        public static void SubscribeKeyDown(DofusWindow window, int key, Action callback)
+        /// <summary>
+        /// Subscribe to a key down event
+        /// </summary>
+        /// <param name="window"></param>
+        /// <param name="key"></param>
+        /// <param name="callback"></param>
+        public void SubscribeKeyDown(DofusWindow window, int key, Action callback)
         {
             var whnd = window.WindowProcess.MainWindowHandle;
 
@@ -164,7 +201,12 @@ namespace Dtwo.API.Inputs
             InputKeyListener.Instance.AddKey(key);
         }
 
-        public static void UnsubscribeKeyDown(DofusWindow window, int key)
+        /// <summary>
+        /// Unsubscribe to a key down event
+        /// </summary>
+        /// <param name="window"></param>
+        /// <param name="key"></param>
+        public void UnsubscribeKeyDown(DofusWindow window, int key)
         {
             var whnd = window.WindowProcess.MainWindowHandle;
 
