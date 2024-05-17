@@ -11,9 +11,6 @@ using System.Threading.Tasks;
 
 namespace Dtwo.API.Inputs.Extensions
 {
-    /// <summary>
-    /// Extensions for DofusWindow
-    /// </summary>
     public static class DofusWindowExtensions
     {
         /// <summary>
@@ -214,7 +211,7 @@ namespace Dtwo.API.Inputs.Extensions
         /// <param name="action"></param>
         public static void SubscribeOnKeyDown(this DofusWindow window, int key, Action action)
         {
-            InputKeyWindow.Instance.SubscribeKeyDown(window, key, action);
+            InputKeyWindow.SubscribeKeyDown(window, key, action);
         }
 
 
@@ -225,7 +222,7 @@ namespace Dtwo.API.Inputs.Extensions
         /// <param name="key"></param>
         public static void UnsubscribeOnKeyDown(this DofusWindow window, int key)
         {
-            InputKeyWindow.Instance.UnsubscribeKeyDown(window, key);
+            InputKeyWindow.UnsubscribeKeyDown(window, key);
         }
 
         /// <summary>
@@ -236,7 +233,7 @@ namespace Dtwo.API.Inputs.Extensions
         /// <param name="action"></param>
         public static void SubscribeOnKeyUp(this DofusWindow window, int key, Action action)
         {
-            InputKeyWindow.Instance.SubscribeKeyUp(window, key, action);
+            InputKeyWindow.SubscribeKeyUp(window, key, action);
         }
 
         /// <summary>
@@ -246,7 +243,7 @@ namespace Dtwo.API.Inputs.Extensions
         /// <param name="key"></param>
         public static void UnsubscribeOnKeyUp(this DofusWindow window, int key)
         {
-            InputKeyWindow.Instance.UnsubscribeKeyUp(window, key);
+            InputKeyWindow.UnsubscribeKeyUp(window, key);
         }
 
 

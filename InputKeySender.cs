@@ -12,14 +12,6 @@ namespace Dtwo.API.Inputs
     /// </summary>
     public class InputKeySender
     {
-        /// <summary>
-        /// Send a key to a process
-        /// </summary>
-        /// <param name="process"></param>
-        /// <param name="keyCode"></param>
-        /// <param name="msDelay"></param>
-        /// <param name="onFinish"></param>
-        /// <returns></returns>
         public async static Task SendKey(Process process, int keyCode, int msDelay = 50, Action? onFinish = null)
         {
             SendKeyDown(process, keyCode);

@@ -13,14 +13,28 @@ namespace Dtwo.API.Inputs
     /// <summary>
     /// Listens to keyboard and mouse inputs and triggers events when a watched key is pressed or released.
     /// </summary>
-    public sealed class InputKeyListener : ThreadSafeSingleton<InputKeyListener>
+    public class InputKeyListener
     {
+        private static InputKeyListener? m_instance;
+        public static InputKeyListener Instance
+        {
+            get
+            {
+                if (m_instance == null)
+                {
+                    m_instance = new InputKeyListener();
+                }
+
+                return m_instance;
+            }
+        }
+
         private IntPtr m_keyboardHookID = IntPtr.Zero;
         private IntPtr m_mouseHookID = IntPtr.Zero;
         private PInvoke.LowLevelKeyboardProc? m_keyboardProc;
         private PInvoke.LowLevelMouseProc? m_mouseProc;
 
-        private bool m_isStarted;
+        public bool IsStarted { get; private set; }
 
         private event Action<int>? m_keyDown;
         /// <summary>
@@ -81,7 +95,7 @@ namespace Dtwo.API.Inputs
         /// </summary>
         public void StartListen()
         {
-            if (m_isStarted)
+            if (IsStarted)
                 return;
 
             m_keyboardProc = KeyboardHookCallback;
@@ -99,7 +113,7 @@ namespace Dtwo.API.Inputs
                 Debug.WriteLine("Failed to install hook: " + errorCode);
             }
 
-            m_isStarted = true;
+            IsStarted = true;
         }
 
         /// <summary>
@@ -107,7 +121,7 @@ namespace Dtwo.API.Inputs
         /// </summary>
         public void Stop()
         {
-            if (m_isStarted == false)
+            if (IsStarted == false)
                 return;
 
             PInvoke.UnhookWindowsHookEx(m_keyboardHookID);
